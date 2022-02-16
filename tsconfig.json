@@ -7,8 +7,10 @@
     "declaration": true
   },
   "include": [
-    "tests/**/*.ts",
     "src/**/*.ts",
     "index.ts"
+  ],
+  "exclude": [
+    "**/*.spec.ts"
   ]
 }
