@@ -18,22 +18,26 @@ const LINE_REGEX = /^(\d\d?)( @[0-9A-Za-z]+@)? (_?\w+)( .*)?$/;
 
 export function lineFromString(lineStr: string): GedcomLine {
     const match = lineStr.match(LINE_REGEX);
-    console.log(match);
-    if (!match)
+    if (!match) {
         throw new Error(
             `Line parser could not parse line: ${JSON.stringify(lineStr)}`,
         );
+    }
     const level = match[1];
     let xrefId = match[2];
     const tag = match[3];
     let value = match[4];
 
     return {
-        level: +(level),
+        level: +level,
         ...(xrefId ? { xrefId: xrefId.trim() as `@${string}@` } : undefined),
         tag,
-        ...(value && { value: value.slice(1) }),
+        ...(value && { value: value.slice(1).replace(/@@/g, '@') }),
     };
+}
+
+function escape(value: string) {
+    return value.replace(/@/g, '@@');
 }
 
 export function lineToString({
@@ -43,13 +47,14 @@ export function lineToString({
     value,
 }: GedcomLine): string {
     const xrefStr = xrefId ? xrefId + ' ' : '';
-
     const valueStr =
         value === undefined
             ? ''
             : ' ' +
               (value.includes('\n')
-                  ? value.split('\n').join(`\n${level + 1} CONT `)
-                  : value);
+                  ? escape(value)
+                        .split('\n')
+                        .join(`\n${level + 1} CONT `)
+                  : escape(value));
     return `${level} ${xrefStr}${tag}${valueStr}`;
 }

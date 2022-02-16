@@ -32,6 +32,22 @@ describe('gedcom/line ', () => {
             ).toEqual(`1 NOTE This is a note field that is
 2 CONT continued on the next line.`);
         });
+
+        it('Should escape email address correctly', () => {
+            expect(
+                lineToString({
+                    level: 3,
+                    tag: 'EMAI',
+                    value: 'alexandar@hotmail.com',
+                }),
+            ).toEqual('3 EMAI alexandar@@hotmail.com');
+        });
+
+        it('Should escape multi-at correctly', () => {
+            expect(
+                lineToString({ level: 3, tag: 'TEXT', value: '@thi@@thi@' }),
+            ).toEqual('3 TEXT @@thi@@@@thi@@');
+        });
     });
 
     describe('lineFromString', () => {
@@ -68,6 +84,14 @@ describe('gedcom/line ', () => {
             expect(lineFromString('0 TRLR')).toEqual({
                 level: 0,
                 tag: 'TRLR',
+            });
+        });
+
+        it('Should parse and de-escape @@', () => {
+            expect(lineFromString('3 EVEN @@goodness@@@@this@@')).toEqual({
+                level: 3,
+                tag: 'EVEN',
+                value: '@goodness@@this@',
             });
         });
     });
