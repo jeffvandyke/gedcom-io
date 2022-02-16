@@ -32,11 +32,39 @@ describe('gedcom/line ', () => {
 2 CONT continued on the next line.`);
     });
 
-    it.skip('Should parse tag + value', () => {
+    it('Should parse tag + value', () => {
         expect(lineFromString('2 NAME GEDCOM Specification')).toEqual({
             level: 2,
             tag: 'NAME',
             value: 'GEDCOM Specification',
+        });
+    });
+
+    it('Should parse weird ADOP line', () => {
+        expect(lineFromString('1 ADOP ')).toEqual({
+            level: 1,
+            tag: 'ADOP',
+            value: '',
+        });
+
+        expect(lineFromString('1 ADOP')).toEqual({
+            level: 1,
+            tag: 'ADOP',
+        });
+    });
+
+    it('Should parse FAM line with ident', () => {
+        expect(lineFromString('0 @F1@ FAM')).toEqual({
+            level: 0,
+            xrefId: '@F1@',
+            tag: 'FAM',
+        });
+    });
+
+    it('Should parse TRLR', () => {
+        expect(lineFromString('0 TRLR')).toEqual({
+            level: 0,
+            tag: 'TRLR',
         });
     });
 });

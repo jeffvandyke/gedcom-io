@@ -13,8 +13,27 @@ export type GedcomLine = {
     value?: string;
 };
 
+/** G1: level, G2: xrefid, G3: tag, G4: value */
+const LINE_REGEX = /^(\d\d?)( @[0-9A-Za-z]+@)? (_?\w+)( .*)?$/;
+
 export function lineFromString(lineStr: string): GedcomLine {
-    throw new Error('Bad line');
+    const match = lineStr.match(LINE_REGEX);
+    console.log(match);
+    if (!match)
+        throw new Error(
+            `Line parser could not parse line: ${JSON.stringify(lineStr)}`,
+        );
+    const level = match[1];
+    let xrefId = match[2];
+    const tag = match[3];
+    let value = match[4];
+
+    return {
+        level: +(level),
+        ...(xrefId ? { xrefId: xrefId.trim() as `@${string}@` } : undefined),
+        tag,
+        ...(value && { value: value.slice(1) }),
+    };
 }
 
 export function lineToString({
@@ -25,11 +44,12 @@ export function lineToString({
 }: GedcomLine): string {
     const xrefStr = xrefId ? xrefId + ' ' : '';
 
-    const valueStr = value === undefined
-        ? ''
-        : ' ' +
-          (value.includes('\n')
-              ? value.split('\n').join(`\n${level + 1} CONT `)
-              : value);
+    const valueStr =
+        value === undefined
+            ? ''
+            : ' ' +
+              (value.includes('\n')
+                  ? value.split('\n').join(`\n${level + 1} CONT `)
+                  : value);
     return `${level} ${xrefStr}${tag}${valueStr}`;
 }
