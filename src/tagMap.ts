@@ -1,4 +1,4 @@
-export const tagFieldMap = {
+export const tagMap = {
     /** The character set and encoding used in this GEDCOM file. */
     CHAR: 'characterEncoding',
     /** Additional text for the superior line value. A CONC record without a line value is a fatal
@@ -331,3 +331,6 @@ The GEDCOM specification defines just one GEDCOM form: LINEAGE-LINKED. */
     /** World Wide Web address. */
     WWW: 'web',
 } as const;
+
+export type TagName = keyof typeof tagMap;
+export type MappedTagName = typeof tagMap[keyof typeof tagMap];

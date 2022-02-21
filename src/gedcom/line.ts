@@ -1,4 +1,5 @@
 import { XrefId } from './types';
+import { TagName, tagMap } from '../tagMap';
 
 /** Roughly, a gedcom line is a line of gedcom (value
  * may include newlines) that can be joined with other
@@ -9,7 +10,7 @@ import { XrefId } from './types';
 export type GedcomLine = {
     level: number;
     xrefId?: XrefId;
-    tag: string;
+    tag: TagName;
     value?: string;
 };
 
@@ -24,9 +25,17 @@ export function lineFromString(lineStr: string): GedcomLine {
         );
     }
     const level = match[1];
-    let xrefId = match[2];
+    const xrefId = match[2];
     const tag = match[3];
-    let value = match[4];
+    const value = match[4];
+
+    function assertTag(tag: string): asserts tag is TagName {
+        if (!(tag in tagMap)) {
+            throw new Error(`Tag match "${tag}" was not a known tag.`);
+        }
+    }
+
+    assertTag(tag);
 
     return {
         level: +level,

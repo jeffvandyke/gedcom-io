@@ -37,10 +37,10 @@ describe('gedcom/line ', () => {
             expect(
                 lineToString({
                     level: 3,
-                    tag: 'EMAI',
+                    tag: 'EMAIL',
                     value: 'alexandar@hotmail.com',
                 }),
-            ).toEqual('3 EMAI alexandar@@hotmail.com');
+            ).toEqual('3 EMAIL alexandar@@hotmail.com');
         });
 
         it('Should escape multi-at correctly', () => {
