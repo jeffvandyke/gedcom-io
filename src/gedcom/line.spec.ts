@@ -48,6 +48,16 @@ describe('gedcom/line ', () => {
                 lineToString({ level: 3, tag: 'TEXT', value: '@thi@@thi@' }),
             ).toEqual('3 TEXT @@thi@@@@thi@@');
         });
+
+        it('Should write a value of a pointer without escaping', () => {
+            expect(
+                lineToString({
+                    level: 1,
+                    tag: 'FAMS',
+                    value: { pointer: '@F2@' },
+                }),
+            ).toEqual('1 FAMS @F2@');
+        });
     });
 
     describe('lineFromString', () => {
@@ -92,6 +102,14 @@ describe('gedcom/line ', () => {
                 level: 3,
                 tag: 'EVEN',
                 value: '@goodness@@this@',
+            });
+        });
+
+        it('Should parse pointer value into xrefId object value', () => {
+            expect(lineFromString('1 FAMS @F2@')).toEqual({
+                level: 1,
+                tag: 'FAMS',
+                value: { pointer: '@F2@' },
             });
         });
     });

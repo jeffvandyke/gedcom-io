@@ -1,4 +1,4 @@
-import { XrefId } from './types';
+import { XrefId, ValueType } from './types';
 import { TagName, tagMap } from '../tagMap';
 
 /** Roughly, a gedcom line is a line of gedcom (value
@@ -11,11 +11,18 @@ export type GedcomLine = {
     level: number;
     xrefId?: XrefId;
     tag: TagName;
-    value?: string;
+    value?: ValueType;
 };
 
 /** G1: level, G2: xrefid, G3: tag, G4: value */
 const LINE_REGEX = /^(\d\d?)( @[0-9A-Za-z]+@)? (_?\w+)( .*)?$/;
+const POINTER_REGEX = /^@[0-9A-Za-z]+@$/;
+
+function parseValueType(value: string): ValueType {
+    return value.match(POINTER_REGEX)
+        ? { pointer: value as XrefId }
+        : value.replace(/@@/g, '@');
+}
 
 export function lineFromString(lineStr: string): GedcomLine {
     const match = lineStr.match(LINE_REGEX);
@@ -27,7 +34,8 @@ export function lineFromString(lineStr: string): GedcomLine {
     const level = match[1];
     const xrefId = match[2];
     const tag = match[3];
-    const value = match[4];
+    const valueMatch = match[4];
+    const value = valueMatch !== undefined ? valueMatch.slice(1) : undefined;
 
     function assertTag(tag: string): asserts tag is TagName {
         if (!(tag in tagMap)) {
@@ -41,12 +49,14 @@ export function lineFromString(lineStr: string): GedcomLine {
         level: +level,
         ...(xrefId ? { xrefId: xrefId.trim() as `@${string}@` } : undefined),
         tag,
-        ...(value && { value: value.slice(1).replace(/@@/g, '@') }),
+        ...(value !== undefined ? { value: parseValueType(value) } : undefined),
     };
 }
 
-function escape(value: string) {
-    return value.replace(/@/g, '@@');
+function valueToEscaped(value: ValueType) {
+    return typeof value === 'object'
+        ? value.pointer
+        : value.replace(/@/g, '@@');
 }
 
 export function lineToString({
@@ -60,10 +70,10 @@ export function lineToString({
         value === undefined
             ? ''
             : ' ' +
-              (value.includes('\n')
-                  ? escape(value)
+              (typeof value === 'string' && value.includes('\n')
+                  ? valueToEscaped(value)
                         .split('\n')
                         .join(`\n${level + 1} CONT `)
-                  : escape(value));
+                  : valueToEscaped(value));
     return `${level} ${xrefStr}${tag}${valueStr}`;
 }

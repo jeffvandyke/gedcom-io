@@ -68,7 +68,7 @@ export const mockHeaderDataTree: GedcomDataTree = [
             },
             { tag: 'file', value: '555Sample.ged' },
             { tag: 'language', value: 'English' },
-            { tag: 'submitter', value: '@U1@' },
+            { tag: 'submitter', value: { pointer: '@U1@' } },
         ],
     },
 ];
@@ -93,7 +93,7 @@ export const mockMixDataTree: GedcomDataTree = [
                     { tag: 'date', value: '2 Oct 1822' },
                     {
                         tag: 'source',
-                        value: '@S1@',
+                        value: { pointer: '@S1@' },
                         children: [{ tag: 'page', value: 'Sec. 2, p. 45' }],
                     },
                 ],

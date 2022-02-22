@@ -2,17 +2,19 @@ import type { MappedTagName } from '../tagMap';
 
 export type XrefId = `@${string}@`;
 
+export type ValueType = string | { pointer: XrefId };
+
 export type GedcomDataTreeEntry = {
-    tag: MappedTagName;
-    xrefId?: XrefId;
+  tag: MappedTagName;
+  xrefId?: XrefId;
 } & (
-    | {
-          value: string;
-      }
-    | {
-          value?: string;
-          children: GedcomDataTreeEntry[];
-      }
+  | {
+      value: ValueType;
+    }
+  | {
+      value?: ValueType;
+      children: GedcomDataTreeEntry[];
+    }
 );
 
-export type GedcomDataTree = Array<GedcomDataTreeEntry>
+export type GedcomDataTree = Array<GedcomDataTreeEntry>;
