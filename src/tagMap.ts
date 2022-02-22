@@ -334,3 +334,11 @@ The GEDCOM specification defines just one GEDCOM form: LINEAGE-LINKED. */
 
 export type TagName = keyof typeof tagMap;
 export type MappedTagName = typeof tagMap[keyof typeof tagMap];
+
+type ReverseTagMap = {
+    [K in keyof typeof tagMap as typeof tagMap[K]]: K;
+};
+
+export const reverseTagMap: ReverseTagMap = Object.fromEntries(
+    Object.entries(tagMap).map(([k, v]) => [v, k]),
+) as ReverseTagMap;
