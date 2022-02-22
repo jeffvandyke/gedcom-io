@@ -1,4 +1,4 @@
-import { GedcomDataTreeEntry } from './lines-parser';
+import { GedcomDataTree } from './types';
 
 export const mockHeaderGedcom =
     '0 HEAD\n' +
@@ -20,7 +20,7 @@ export const mockHeaderGedcom =
     '1 LANG English\n' +
     '1 SUBM @U1@\n';
 
-export const mockHeaderDataTree: Array<GedcomDataTreeEntry> = [
+export const mockHeaderDataTree: GedcomDataTree = [
     {
         tag: 'header',
         children: [
@@ -81,7 +81,7 @@ export const mockMixGedcom =
     '2 SOUR @S1@\n' +
     '3 PAGE Sec. 2, p. 45\n';
 
-export const mockMixDataTree: Array<GedcomDataTreeEntry> = [
+export const mockMixDataTree: GedcomDataTree = [
     {
         tag: 'individual',
         xrefId: '@I1@',

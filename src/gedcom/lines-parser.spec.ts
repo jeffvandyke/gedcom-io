@@ -9,8 +9,9 @@ import {
 describe('gedcom/lines-parser', () => {
     describe('parseLinesToDataTree', () => {
         it('Parses gedcom header properly', () => {
-            const parsedDataTree = parseLinesToDataTree(mockHeaderGedcom);
-            expect(parsedDataTree).toEqual(mockHeaderDataTree);
+            expect(parseLinesToDataTree(mockHeaderGedcom)).toEqual(
+                mockHeaderDataTree,
+            );
         });
 
         it('Parses xref and mixed values', () => {

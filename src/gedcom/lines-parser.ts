@@ -1,7 +1,6 @@
-import { tagMap, MappedTagName } from '../tagMap';
-
+import { tagMap } from '../tagMap';
 import { lineFromString, GedcomLine } from './line';
-import { XrefId } from './types';
+import { GedcomDataTree } from './types';
 
 function splitLines(str: string) {
     const lines = str.split('\n');
@@ -39,25 +38,12 @@ function makeLinesReader(lines: GedcomLine[]): LinesReader {
     };
 }
 
-export type GedcomDataTreeEntry = {
-    tag: MappedTagName;
-    xrefId?: XrefId;
-} & (
-    | {
-          value: string;
-      }
-    | {
-          value?: string;
-          children: GedcomDataTreeEntry[];
-      }
-);
-
 function recurGatherChildren(
     reader: LinesReader,
     currentLevel: number,
-): Array<GedcomDataTreeEntry> {
+): GedcomDataTree {
     // Entered if peekNext returns level that exceeds currentLevel
-    let results: Array<GedcomDataTreeEntry> = [];
+    let results: GedcomDataTree = [];
 
     while (true) {
         const currentLine = reader.popLine();
@@ -78,7 +64,7 @@ function recurGatherChildren(
             ...(currentLine.xrefId ? { xrefId: currentLine.xrefId } : null),
         };
         const value = currentLine.value;
-        let children: Array<GedcomDataTreeEntry> | null = null;
+        let children: GedcomDataTree | null = null;
 
         let nextLine = reader.peekLine();
 
@@ -111,7 +97,7 @@ function recurGatherChildren(
 
 export function parseLinesToDataTree(
     gedcomFile: string,
-): Array<GedcomDataTreeEntry> {
+): GedcomDataTree {
     const lines = splitLines(gedcomFile);
     const parsedLines = lines.map(lineFromString);
     const groupedLines = gatherGroupedLines(parsedLines);
