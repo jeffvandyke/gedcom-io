@@ -1,4 +1,4 @@
-import { tagMap, reverseTagMap } from '../tagMap';
+import { reverseTagMap } from '../tagMap';
 import { lineToString, GedcomLine } from './line';
 import { GedcomDataTree } from './types';
 
