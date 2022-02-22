@@ -79,6 +79,38 @@ describe('gedcom/lines-parser', () => {
             expect(parsedDataTree[0]).toEqual(headerDataTreeEntry);
         });
 
-        // TODO: Test xref and ids
+        it('Parses xref and mixed values', () => {
+            expect(
+                parseLinesToDataTree(
+                    '0 @I1@ INDI\n' +
+                        '1 NAME Robert Eugene /Williams/\n' +
+                        '1 BIRT\n' +
+                        '2 DATE 2 Oct 1822\n' +
+                        '2 SOUR @S1@\n' +
+                        '3 PAGE Sec. 2, p. 45\n',
+                ),
+            ).toEqual([
+                {
+                    tag: 'individual',
+                    xrefId: '@I1@',
+                    children: [
+                        { tag: 'name', value: 'Robert Eugene /Williams/' },
+                        {
+                            tag: 'birth',
+                            children: [
+                                { tag: 'date', value: '2 Oct 1822' },
+                                {
+                                    tag: 'source',
+                                    value: '@S1@',
+                                    children: [
+                                        { tag: 'page', value: 'Sec. 2, p. 45' },
+                                    ],
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ]);
+        });
     });
 });
