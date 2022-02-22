@@ -1,6 +1,7 @@
-import { lineFromString, GedcomLine } from './line';
+import { tagMap, MappedTagName } from '../tagMap';
 
-const l = console.log.bind(console);
+import { lineFromString, GedcomLine } from './line';
+import { XrefId } from './types';
 
 function splitLines(str: string) {
     const lines = str.split('\n');
@@ -22,48 +23,101 @@ function gatherGroupedLines(ungroupedLines: GedcomLine[]): GedcomLine[] {
 }
 
 type LinesReader = {
-    getCurrent(): GedcomLine;
-    peekNext(): GedcomLine | null;
-    advance(): boolean;
+    popLine(): GedcomLine | null;
+    peekLine(): GedcomLine | null;
 };
 
 function makeLinesReader(lines: GedcomLine[]): LinesReader {
     let index = 0;
     return {
-        getCurrent: () => lines[index],
-        peekNext: () => lines[index + 1] ?? null,
-        advance: () => {
+        popLine: () => {
+            const ret = lines[index];
             index += 1;
-            return lines[index] !== undefined;
+            return ret ?? null;
         },
+        peekLine: () => lines[index] ?? null,
     };
 }
 
-function recurStructureLines(reader: LinesReader, currentLevel: number) {
+export type GedcomDataTreeEntry = {
+    tag: MappedTagName;
+    xrefId?: XrefId;
+} & (
+    | {
+          value: string;
+      }
+    | {
+          value?: string;
+          children: GedcomDataTreeEntry[];
+      }
+);
+
+function recurGatherChildren(
+    reader: LinesReader,
+    currentLevel: number,
+): Array<GedcomDataTreeEntry> {
     // Entered if peekNext returns level that exceeds currentLevel
-    let result;
-    
-    const nextLine = reader.peekNext();
-    if (nextLine == null || reader.peekNext().level <= currentLevel) {
-        return result;
+    let results: Array<GedcomDataTreeEntry> = [];
+
+    while (true) {
+        const currentLine = reader.popLine();
+
+        // Trace
+        // console.debug({ currentLevel, results, currentLine });
+
+        if (currentLine === null) return results; // Another base exit condition, happens if child call returns after consuming last line
+
+        if (currentLine.level > currentLevel + 1) {
+            throw new Error(
+                `Gedcom parse error - currentLine.level ${currentLine.level} found where expected current level was ${currentLevel}`,
+            );
+        }
+
+        const baseEntry = {
+            tag: tagMap[currentLine.tag],
+            ...(currentLine.xrefId ? { xrefId: currentLine.xrefId } : null),
+        };
+        const value = currentLine.value;
+        let children: Array<GedcomDataTreeEntry> | null = null;
+
+        let nextLine = reader.peekLine();
+
+        if (nextLine !== null && nextLine.level > currentLine.level) {
+            children = recurGatherChildren(reader, currentLevel + 1);
+        }
+
+        if (children === null) {
+            if (value === undefined)
+                throw new Error(
+                    'Gedcom records must have either a value or children',
+                );
+            results.push({ ...baseEntry, value });
+        } else {
+            if (value !== undefined)
+                results.push({ ...baseEntry, value, children });
+            else {
+                results.push({ ...baseEntry, children });
+            }
+        }
+
+        nextLine = reader.peekLine(); // Needs re-check after calling recurGatherChildren
+
+        if (nextLine === null || nextLine.level < currentLevel) {
+            // Base exit condition
+            return results;
+        }
     }
 }
 
-export function parseLinesToNormObj(gedcomFile: string): object {
+export function parseLinesToDataTree(
+    gedcomFile: string,
+): Array<GedcomDataTreeEntry> {
     const lines = splitLines(gedcomFile);
     const parsedLines = lines.map(lineFromString);
     const groupedLines = gatherGroupedLines(parsedLines);
 
     const reader = makeLinesReader(groupedLines);
-    recurStructureLines(reader);
+    const dataTree = recurGatherChildren(reader, 0);
 
-    // const levelEntries = [];
-    // for (const line in groupedLines) {
-    //     if (line.level === levelEntries.length) {
-    //     } else if (line.level === levelEntries.length + 1) {
-    //         levelEntries[line.level] = {};
-    //     }
-
-    // }
-    return result;
+    return dataTree;
 }

@@ -1,64 +1,84 @@
-import { parseLinesToNormObj } from './lines-parser';
+import { parseLinesToDataTree, GedcomDataTreeEntry } from './lines-parser';
 
 describe('gedcom/lines-parser', () => {
-    describe('parseLinesToNormObj', () => {
+    describe('parseLinesToDataTree', () => {
         it('Parses gedcom header properly', () => {
-            expect(
-                parseLinesToNormObj(`0 HEAD
-1 GEDC
-2 VERS 5.5.5
-2 FORM LINEAGE-LINKED
-3 VERS 5.5.5
-1 CHAR UTF-8
-1 SOUR GS
-2 NAME GEDCOM Specification
-2 VERS 5.5.5
-2 CORP gedcom.org
-3 ADDR
-4 CITY LEIDEN
-3 WWW www.gedcom.org
-1 DATE 2 Oct 2019
-2 TIME 0:00:00
-1 FILE 555Sample.ged
-1 LANG English
-1 SUBM @U1@
-`,
-                ),
-            ).toEqual({
-                header: {
-                    gedcom: true,
-                    version: '5.5.5',
-                    form: {
-                        value: 'LINEAGE-LINKED',
-                        version: '5.5.5',
-                    },
-                    characterEncoding: 'UTF-8',
-                    source: {
-                        value: 'GS',
-                        name: 'GEDCOM Specification',
-                        version: '5.5.5',
-                        corporate: {
-                            value: 'gedcom.org',
-                            address: {
-                                city: 'LEIDEN',
-                            },
-                            web: 'www.gedcom.org',
-                        },
-                    },
-                    date: {
-                        value: '2 Oct 2019',
-                        time: '0:00:00',
-                    },
-                    file: '555Sample.ged',
-                    language: 'English',
-                    submitter: { pointer: '@U1@' },
-                },
-            });
+            const headerDataTreeEntry: GedcomDataTreeEntry = {
+                tag: 'header',
+                children: [
+                    {
+                        tag: 'gedcom',
+                        children: [
+                            { tag: 'version', value: '5.5.5' },
 
-            // - When descension occurs
-            //   - if val === true, replace with object (ignore val for subrecords-only)
-            //   - if value !== true, assign val to "value"
-            // - Special non-tag field names: "pointer", "value"
+                            {
+                                tag: 'form',
+                                value: 'LINEAGE-LINKED',
+                                children: [{ tag: 'version', value: '5.5.5' }],
+                            },
+                        ],
+                    },
+                    { tag: 'characterEncoding', value: 'UTF-8' },
+                    {
+                        tag: 'source',
+                        value: 'GS',
+                        children: [
+                            { tag: 'name', value: 'GEDCOM Specification' },
+                            { tag: 'version', value: '5.5.5' },
+                            {
+                                tag: 'corporate',
+                                value: 'gedcom.org',
+                                children: [
+                                    {
+                                        tag: 'address',
+                                        children: [
+                                            {
+                                                tag: 'city',
+                                                value: 'LEIDEN',
+                                            },
+                                        ],
+                                    },
+                                    { tag: 'web', value: 'www.gedcom.org' },
+                                ],
+                            },
+                        ],
+                    },
+                    {
+                        tag: 'date',
+                        value: '2 Oct 2019',
+                        children: [{ tag: 'time', value: '0:00:00' }],
+                    },
+                    { tag: 'file', value: '555Sample.ged' },
+                    { tag: 'language', value: 'English' },
+                    { tag: 'submitter', value: '@U1@' },
+                ],
+            };
+
+            const parsedDataTree = parseLinesToDataTree(
+                '0 HEAD\n' +
+                    '1 GEDC\n' +
+                    '2 VERS 5.5.5\n' +
+                    '2 FORM LINEAGE-LINKED\n' +
+                    '3 VERS 5.5.5\n' +
+                    '1 CHAR UTF-8\n' +
+                    '1 SOUR GS\n' +
+                    '2 NAME GEDCOM Specification\n' +
+                    '2 VERS 5.5.5\n' +
+                    '2 CORP gedcom.org\n' +
+                    '3 ADDR\n' +
+                    '4 CITY LEIDEN\n' +
+                    '3 WWW www.gedcom.org\n' +
+                    '1 DATE 2 Oct 2019\n' +
+                    '2 TIME 0:00:00\n' +
+                    '1 FILE 555Sample.ged\n' +
+                    '1 LANG English\n' +
+                    '1 SUBM @U1@\n',
+            );
+
+            expect(parsedDataTree).toHaveLength(1);
+            expect(parsedDataTree[0]).toEqual(headerDataTreeEntry);
         });
+
+        // TODO: Test xref and ids
     });
 });
