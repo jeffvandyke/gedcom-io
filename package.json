@@ -3,7 +3,7 @@
   "author": "Jeff VanDyke",
   "version": "1.0.0",
   "description": "Writes GEDCOM files",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "prepublishOnly": "npm run clean && npm run build",
     "build": "tsc",
